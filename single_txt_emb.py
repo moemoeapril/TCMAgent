@@ -13,6 +13,7 @@ import faiss
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
+from sentence_transformers import SentenceTransformer
 
 class TextLoader:
     def __init__(self,file_path,save_folder=None):
@@ -188,11 +189,18 @@ class App:
         # 查询相似数据
 
         #查询示例并执行初步搜索
-        embedder=Embedder(model_path=self.model_path)
         query = "天麻的功效是什么？"
-        query_embedding = embedder.encode(query)
+        # embedder=Embedder(model_path=self.model_path) #使用本地Embedder类
+        
+        # query_embedding = embedder.encode(query)
+
+        model=SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2") #使用SentenceTransformer
+        embedder_q=model.encode(query)
+        print(f"查询的向量形状: {embedder_q.shape}")
+
         # sim_indices = store.search(query_embedding, top_k=5)
-        initial_results=store.search(query_embedding, top_k=self.top_k)
+        # initial_results=store.search(query_embedding, top_k=self.top_k)
+        initial_results=store.search(embedder_q, top_k=self.top_k)
 
         print("\\n[🔍] 初步相似结果：")
         for idx,text in enumerate(initial_results):
